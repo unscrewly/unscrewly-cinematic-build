@@ -92,8 +92,8 @@ export function FluidCursorTrail() {
 
       const now = performance.now();
       if (speed > 1.5 && now - lastSpawn >= SPAWN_THROTTLE_MS) {
-        const radius = Math.max(40, Math.min(160, 40 + speed * 4));
-        pushSplat(x, y, radius, currentHue);
+        const radius = Math.max(100, Math.min(240, 100 + speed * 5));
+        pushSplat(x, y, radius, currentHue, 1, 4000 + Math.random() * 2000);
         lastSpawn = now;
       }
       prevX = x;
@@ -102,9 +102,9 @@ export function FluidCursorTrail() {
 
     const onDown = (e: MouseEvent) => {
       for (let i = 0; i < 5; i++) {
-        const radius = 120 + Math.random() * 40;
+        const radius = 180 + Math.random() * 60;
         const hue = currentHue + (Math.random() * 60 - 30);
-        pushSplat(e.clientX, e.clientY, radius, hue, 1, 3500 + Math.random() * 2000);
+        pushSplat(e.clientX, e.clientY, radius, hue, 1, 4500 + Math.random() * 1500);
       }
     };
 
@@ -119,10 +119,9 @@ export function FluidCursorTrail() {
       const now = performance.now();
       ctx.clearRect(0, 0, width, height);
 
-      // Additive blending inside the canvas so overlapping splats build up
-      // brightness; the canvas itself uses mix-blend-mode: screen against
-      // the dark page background.
-      ctx.globalCompositeOperation = "lighter";
+      // Canvas sits behind page content — default compositing renders
+      // splats directly onto the dark background layer.
+      ctx.globalCompositeOperation = "source-over";
 
       const splats = splatsRef.current;
       for (let i = splats.length - 1; i >= 0; i--) {
@@ -137,9 +136,9 @@ export function FluidCursorTrail() {
         const r = s.radius * (1 + t * 0.8);
 
         const grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r);
-        grad.addColorStop(0, `hsla(${s.hue}, 100%, 72%, ${alpha})`);
-        grad.addColorStop(0.3, `hsla(${(s.hue + 25) % 360}, 95%, 65%, ${alpha * 0.7})`);
-        grad.addColorStop(0.65, `hsla(${(s.hue + 55) % 360}, 90%, 58%, ${alpha * 0.35})`);
+        grad.addColorStop(0, `hsla(${s.hue}, 100%, 80%, ${alpha})`);
+        grad.addColorStop(0.3, `hsla(${(s.hue + 25) % 360}, 95%, 70%, ${alpha * 0.7})`);
+        grad.addColorStop(0.65, `hsla(${(s.hue + 55) % 360}, 90%, 60%, ${alpha * 0.35})`);
         grad.addColorStop(1, `hsla(${(s.hue + 80) % 360}, 85%, 50%, 0)`);
 
         ctx.fillStyle = grad;
@@ -147,8 +146,6 @@ export function FluidCursorTrail() {
         ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      ctx.globalCompositeOperation = "source-over";
 
       if (!visible) {
         rafRef.current = null;
@@ -184,8 +181,7 @@ export function FluidCursorTrail() {
         width: "100vw",
         height: "100vh",
         pointerEvents: "none",
-        zIndex: 9999,
-        mixBlendMode: "screen",
+        zIndex: 1,
       }}
     />
   );
